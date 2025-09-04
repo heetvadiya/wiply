@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      const existingEmails = existingUsers.map(user => user.email)
+      const existingEmails = existingUsers.map((user: any) => user.email)
       const nonExistingEmails = validatedData.attendeeEmails.filter(email => !existingEmails.includes(email))
 
       // Create attendance records for existing users

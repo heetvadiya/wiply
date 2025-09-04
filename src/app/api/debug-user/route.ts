@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const events = await prisma.event.findMany({
       where: {
         creatorId: {
-          in: users.map(u => u.id)
+          in: users.map((u: any) => u.id)
         }
       },
       include: {

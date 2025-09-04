@@ -67,7 +67,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         OR: [
           {
             userId: {
-              in: existingUsers.map(u => u.id),
+              in: existingUsers.map((u: any) => u.id),
             },
           },
           {
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
     } as any)
 
-    const existingAttendanceUserIds = existingAttendances.map(a => a.userId).filter(Boolean)
+    const existingAttendanceUserIds = existingAttendances.map((a: any) => a.userId).filter(Boolean)
     const existingAttendanceEmails = existingAttendances.map((a: any) => a.email).filter(Boolean)
 
     // Filter out users/emails that are already attendees
