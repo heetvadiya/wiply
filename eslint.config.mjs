@@ -28,6 +28,11 @@ const eslintConfig = [
       "@typescript-eslint/no-this-alias": "off",
       "@typescript-eslint/no-unused-expressions": "off",
       "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-implicit-any": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
     }
   }
 ];

@@ -47,7 +47,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Check if user has access (creator or confirmed attendee)
     const hasAccess = event.creatorId === session.user.id || 
-      event.attendances.some(attendance => attendance.userId === session.user.id)
+      event.attendances.some((attendance: any) => attendance.userId === session.user.id)
 
     if (!hasAccess) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 })

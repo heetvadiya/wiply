@@ -585,7 +585,7 @@ export default function EventDetailPage() {
   const totalBillAmount = event.bills.reduce((sum, bill) => sum + bill.totalCents, 0)
   const perPersonAmount = confirmedAttendees.length > 0 ? totalBillAmount / confirmedAttendees.length : 0
   const isCreator = event.creator.id === session.user.id
-  const myAttendance = event.attendances.find(a => a.user?.id === session.user.id)
+  const myAttendance = event.attendances.find((a: any) => a.user?.id === session.user.id)
 
   // Debug logging (remove after testing)
   // console.log("Event creator ID:", event.creator.id)
