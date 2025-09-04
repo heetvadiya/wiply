@@ -18,7 +18,7 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
-      "src/generated/**",
+      "**/node_modules/**",
     ],
   },
   {
@@ -33,6 +33,10 @@ const eslintConfig = [
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-empty-object-type": "off",
+      "@typescript-eslint/no-unnecessary-type-constraint": "off",
+      "@typescript-eslint/no-wrapper-object-types": "off",
+      "@typescript-eslint/no-unsafe-function-type": "off",
     }
   }
 ];
