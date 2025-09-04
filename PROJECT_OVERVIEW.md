@@ -181,3 +181,4 @@ This project successfully delivers:
 - **Easy deployment** process ✓
 
 The WIP Events app is ready to streamline your work-in-person event management and reimbursement processes! 🎉
+

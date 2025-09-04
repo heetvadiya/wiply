@@ -69,12 +69,12 @@ export default function PeoplePage() {
       <Navbar onSearchOpen={() => setSearchOpen(true)} />
       <CommandSearch open={searchOpen} onOpenChange={setSearchOpen} />
       
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-4 py-4 md:py-8 space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">People Directory</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">People Directory</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               See who's participating in WIP events and their activity
             </p>
           </div>
@@ -94,7 +94,7 @@ export default function PeoplePage() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total People</CardTitle>
@@ -174,35 +174,35 @@ export default function PeoplePage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredPeople.map((person) => (
                 <Card key={person.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
-                      <Avatar className="h-12 w-12">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-start space-x-3 sm:space-x-4">
+                      <Avatar className="h-10 w-10 sm:h-12 sm:w-12 shrink-0">
                         <AvatarImage src={person.image} alt={person.name} />
                         <AvatarFallback>{person.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       
-                      <div className="flex-1 space-y-2">
+                      <div className="flex-1 space-y-2 min-w-0">
                         <div>
-                          <h3 className="font-medium">{person.name}</h3>
-                          <p className="text-sm text-muted-foreground">{person.email}</p>
+                          <h3 className="font-medium text-sm sm:text-base truncate">{person.name}</h3>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">{person.email}</p>
                         </div>
                         
                         <div className="space-y-1">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Events attended:</span>
-                            <Badge variant="secondary">{person.eventCount}</Badge>
+                          <div className="flex items-center justify-between text-xs sm:text-sm">
+                            <span className="text-muted-foreground">Events:</span>
+                            <Badge variant="secondary" className="text-xs">{person.eventCount}</Badge>
                           </div>
                           
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Total spent:</span>
+                          <div className="flex items-center justify-between text-xs sm:text-sm">
+                            <span className="text-muted-foreground">Spent:</span>
                             <span className="font-medium">₹{person.totalSpent.toLocaleString('en-IN')}</span>
                           </div>
                           
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Amount owed:</span>
+                          <div className="flex items-center justify-between text-xs sm:text-sm">
+                            <span className="text-muted-foreground">Owed:</span>
                             <span className="font-medium text-amber-600">
                               ₹{person.totalOwed.toLocaleString('en-IN')}
                             </span>

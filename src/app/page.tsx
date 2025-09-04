@@ -62,16 +62,16 @@ export default function HomePage() {
       <Navbar onSearchOpen={() => setSearchOpen(true)} />
       <CommandSearch open={searchOpen} onOpenChange={setSearchOpen} />
       
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-4 py-4 md:py-8 space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Events Dashboard</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Events Dashboard</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Manage your work-in-person events and shared expenses
             </p>
           </div>
-          <Button size="lg" className="hidden sm:flex" asChild>
+          <Button size="lg" className="w-full sm:w-auto" asChild>
             <Link href="/events/new">
               <Plus className="mr-2 h-4 w-4" />
               Create Event
@@ -80,7 +80,7 @@ export default function HomePage() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">My Events</CardTitle>
@@ -109,23 +109,23 @@ export default function HomePage() {
         </div>
 
         {/* Events Tabs */}
-        <Tabs defaultValue="my-events" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <TabsList>
-              <TabsTrigger value="my-events">My Events</TabsTrigger>
-              <TabsTrigger value="created">Created by Me</TabsTrigger>
-              <TabsTrigger value="current-wip">Current WIP</TabsTrigger>
-              <TabsTrigger value="all">All Events</TabsTrigger>
+        <Tabs defaultValue="my-events" className="space-y-4 md:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:grid-cols-4">
+              <TabsTrigger value="my-events" className="text-xs sm:text-sm">My Events</TabsTrigger>
+              <TabsTrigger value="created" className="text-xs sm:text-sm">Created</TabsTrigger>
+              <TabsTrigger value="current-wip" className="text-xs sm:text-sm">Current WIP</TabsTrigger>
+              <TabsTrigger value="all" className="text-xs sm:text-sm">All Events</TabsTrigger>
             </TabsList>
             
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
                 <Filter className="mr-2 h-4 w-4" />
-                Filter
+                <span className="hidden sm:inline">Filter</span>
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
                 <Search className="mr-2 h-4 w-4" />
-                Search
+                <span className="hidden sm:inline">Search</span>
               </Button>
             </div>
           </div>
@@ -236,27 +236,70 @@ function EventsList({ type }: { type: string }) {
     <div className="space-y-4">
       {events.map((event: any) => (
         <Card key={event.id} className="hover:shadow-md transition-shadow group">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <Link href={`/events/${event.id}`} className="flex-1">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <Link href={`/events/${event.id}`} className="flex-1 min-w-0">
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <h3 className="font-semibold text-lg">{event.title}</h3>
+                  <div className="flex items-start justify-between">
+                    <h3 className="font-semibold text-base sm:text-lg line-clamp-2 pr-2">{event.title}</h3>
+                    {session?.user?.id === event.creatorId && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity shrink-0 h-8 w-8 p-0"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem 
+                                className="text-destructive cursor-pointer"
+                                onSelect={(e) => e.preventDefault()}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Event
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="max-w-[95vw] sm:max-w-lg">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Event</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{event.title}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                                <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDeleteEvent(event.id, event.title)}
+                                  className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete Event
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                   
-                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center space-x-1">
-                      <Clock className="h-4 w-4" />
-                      <span>{new Date(event.date).toLocaleDateString()}</span>
+                      <Clock className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{new Date(event.date).toLocaleDateString()}</span>
                     </div>
                     {event.location && (
                       <div className="flex items-center space-x-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>{event.location}</span>
+                        <MapPin className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{event.location}</span>
                       </div>
                     )}
                     <div className="flex items-center space-x-1">
-                      <Users className="h-4 w-4" />
+                      <Users className="h-4 w-4 shrink-0" />
                       <span>{event.attendeeCount || 0} attendees</span>
                     </div>
                   </div>
@@ -267,64 +310,18 @@ function EventsList({ type }: { type: string }) {
                 </div>
               </Link>
               
-              <div className="flex items-center space-x-2">
-                {event.totalAmount > 0 && (
-                  <div className="text-right space-y-1 mr-2">
-                    <div className="text-lg font-semibold">
-                      ₹{(event.totalAmount / 100).toLocaleString('en-IN')}
-                    </div>
-                    {event.attendeeCount > 0 && (
-                      <div className="text-sm text-muted-foreground">
-                        ₹{Math.round(event.totalAmount / 100 / event.attendeeCount).toLocaleString('en-IN')} per person
-                      </div>
-                    )}
+              {event.totalAmount > 0 && (
+                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start text-right space-y-0 sm:space-y-1 pt-2 sm:pt-0 border-t sm:border-t-0 sm:min-w-[120px]">
+                  <div className="text-lg font-semibold">
+                    ₹{(event.totalAmount / 100).toLocaleString('en-IN')}
                   </div>
-                )}
-                
-                {session?.user?.id === event.creatorId && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <DropdownMenuItem 
-                            className="text-destructive cursor-pointer"
-                            onSelect={(e) => e.preventDefault()}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Event
-                          </DropdownMenuItem>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Event</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{event.title}"? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleDeleteEvent(event.id, event.title)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete Event
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
+                  {event.attendeeCount > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      ₹{Math.round(event.totalAmount / 100 / event.attendeeCount).toLocaleString('en-IN')} per person
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

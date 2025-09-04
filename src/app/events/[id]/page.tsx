@@ -491,36 +491,37 @@ export default function EventDetailPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
+      <main className="container mx-auto px-4 py-4 md:py-8 max-w-6xl">
         {/* Header */}
-        <div className="flex items-center space-x-4 mb-8">
+        <div className="flex items-center space-x-4 mb-6 md:mb-8">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
+              <span className="hidden sm:inline">Back to Dashboard</span>
+              <span className="sm:hidden">Back</span>
             </Link>
           </Button>
         </div>
 
         {/* Event Header */}
-        <div className="space-y-6 mb-8">
-          <div className="flex items-start justify-between">
-            <div className="space-y-4 flex-1">
+        <div className="space-y-4 md:space-y-6 mb-6 md:mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="space-y-3 md:space-y-4 flex-1 min-w-0">
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
-                <div className="flex items-center space-x-6 text-muted-foreground">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight line-clamp-2">{event.title}</h1>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4 text-sm md:text-base text-muted-foreground">
                   <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4" />
-                    <span>{new Date(event.date).toLocaleString()}</span>
+                    <Calendar className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{new Date(event.date).toLocaleString()}</span>
                   </div>
                   {event.location && (
                     <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{event.location}</span>
+                      <MapPin className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{event.location}</span>
                     </div>
                   )}
                   <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4" />
+                    <Users className="h-4 w-4 shrink-0" />
                     <span>{confirmedAttendees.length} confirmed</span>
                   </div>
                 </div>

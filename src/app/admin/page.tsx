@@ -217,19 +217,19 @@ export default function AdminPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-4 py-4 md:py-8 space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">WIP Management</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">WIP Management</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Manage Work-In-Person windows and settings
             </p>
           </div>
           
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => {
+              <Button className="w-full sm:w-auto" onClick={() => {
                 setEditingWindow(null)
                 form.reset({
                   name: "",
@@ -242,7 +242,7 @@ export default function AdminPage() {
                 New WIP Window
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-[95vw] sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>
                   {editingWindow ? "Edit WIP Window" : "Create New WIP Window"}
@@ -268,7 +268,7 @@ export default function AdminPage() {
                     )}
                   />
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="startDate"
@@ -319,11 +319,11 @@ export default function AdminPage() {
                     )}
                   />
                   
-                  <div className="flex justify-end space-x-2">
-                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                  <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="w-full sm:w-auto">
                       Cancel
                     </Button>
-                    <Button type="submit">
+                    <Button type="submit" className="w-full sm:w-auto">
                       {editingWindow ? "Update" : "Create"} WIP Window
                     </Button>
                   </div>
@@ -362,78 +362,89 @@ export default function AdminPage() {
           ) : (
             wipWindows.map((window) => (
               <Card key={window.id} className={window.isActive ? "border-primary" : ""}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="font-semibold text-lg">{window.name}</h3>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <h3 className="font-semibold text-base sm:text-lg truncate">{window.name}</h3>
                         {window.isActive && (
-                          <Badge variant="default">Active</Badge>
+                          <Badge variant="default" className="w-fit">Active</Badge>
                         )}
                       </div>
                       
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                      <div className="grid grid-cols-1 gap-2 text-sm text-muted-foreground">
                         <div className="flex items-center space-x-1">
-                          <Calendar className="h-4 w-4" />
-                          <span>
+                          <Calendar className="h-4 w-4 shrink-0" />
+                          <span className="truncate">
                             {new Date(window.startDate).toLocaleDateString()} - {new Date(window.endDate).toLocaleDateString()}
                           </span>
                         </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <span>{window.eventCount} events</span>
-                        <span>•</span>
-                        <span>{window.participantCount} participants</span>
+                        
+                        <div className="flex items-center space-x-1">
+                          <Users className="h-4 w-4 shrink-0" />
+                          <span>{window.eventCount} events • {window.participantCount} participants</span>
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(window)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-destructive hover:text-destructive"
-                            disabled={window.isActive}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete WIP Window</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{window.name}"? This action cannot be undone.
-                              {window.eventCount > 0 && (
-                                <span className="block mt-2 text-amber-600 font-medium">
-                                  Warning: This WIP window has {window.eventCount} event(s) and {window.participantCount} participant(s).
-                                </span>
-                              )}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleDeleteWipWindow(window)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                      <div className="flex items-center justify-between sm:justify-start space-x-2">
+                        <span className="text-sm text-muted-foreground sm:hidden">
+                          {window.isActive ? "Active" : "Inactive"}
+                        </span>
+                        <Switch
+                          checked={window.isActive}
+                          onCheckedChange={() => handleToggleActive(window)}
+                        />
+                      </div>
+                      
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(window)}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Edit className="h-4 w-4" />
+                          <span className="ml-2 sm:hidden">Edit</span>
+                        </Button>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex-1 sm:flex-none text-destructive hover:text-destructive"
+                              disabled={window.isActive}
                             >
-                              Delete WIP Window
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                      <Switch
-                        checked={window.isActive}
-                        onCheckedChange={() => handleToggleActive(window)}
-                      />
+                              <Trash2 className="h-4 w-4" />
+                              <span className="ml-2 sm:hidden">Delete</span>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="max-w-[95vw] sm:max-w-lg">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete WIP Window</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{window.name}"? This action cannot be undone.
+                                {window.eventCount > 0 && (
+                                  <span className="block mt-2 text-amber-600 font-medium">
+                                    Warning: This WIP window has {window.eventCount} event(s) and {window.participantCount} participant(s).
+                                  </span>
+                                )}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                              <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteWipWindow(window)}
+                                className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete WIP Window
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

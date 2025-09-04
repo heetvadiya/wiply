@@ -51,3 +51,4 @@ echo "Next steps:"
 echo "1. Set up your production database"
 echo "2. Configure environment variables in your hosting platform"
 echo "3. Deploy using your preferred method (Vercel, Railway, etc.)"
+
