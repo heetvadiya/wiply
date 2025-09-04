@@ -183,9 +183,9 @@ export default function AdminPage() {
     }
   }
 
-  const handleDeleteWipWindow = async (window: WipWindow, force = false) => {
+  const handleDeleteWipWindow = async (wipWindow: WipWindow, force = false) => {
     try {
-      const url = `/api/wip-windows/${window.id}${force ? '?force=true' : ''}`
+      const url = `/api/wip-windows/${wipWindow.id}${force ? '?force=true' : ''}`
       const response = await fetch(url, {
         method: 'DELETE',
       })
@@ -198,7 +198,7 @@ export default function AdminPage() {
             `This WIP window has ${errorData.eventCount} event(s). Are you sure you want to delete it along with all events, bills, and receipts? This action cannot be undone.`
           )
           if (confirmForce) {
-            return handleDeleteWipWindow(window, true)
+            return handleDeleteWipWindow(wipWindow, true)
           }
           return
         }
@@ -360,14 +360,14 @@ export default function AdminPage() {
               </CardContent>
             </Card>
           ) : (
-            wipWindows.map((window) => (
-              <Card key={window.id} className={window.isActive ? "border-primary" : ""}>
+            wipWindows.map((wipWindow) => (
+              <Card key={wipWindow.id} className={wipWindow.isActive ? "border-primary" : ""}>
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                     <div className="space-y-2 flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                        <h3 className="font-semibold text-base sm:text-lg truncate">{window.name}</h3>
-                        {window.isActive && (
+                        <h3 className="font-semibold text-base sm:text-lg truncate">{wipWindow.name}</h3>
+                        {wipWindow.isActive && (
                           <Badge variant="default" className="w-fit">Active</Badge>
                         )}
                       </div>
@@ -376,13 +376,13 @@ export default function AdminPage() {
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-4 w-4 shrink-0" />
                           <span className="truncate">
-                            {new Date(window.startDate).toLocaleDateString()} - {new Date(window.endDate).toLocaleDateString()}
+                            {new Date(wipWindow.startDate).toLocaleDateString()} - {new Date(wipWindow.endDate).toLocaleDateString()}
                           </span>
                         </div>
                         
                         <div className="flex items-center space-x-1">
                           <Users className="h-4 w-4 shrink-0" />
-                          <span>{window.eventCount} events • {window.participantCount} participants</span>
+                          <span>{wipWindow.eventCount} events • {wipWindow.participantCount} participants</span>
                         </div>
                       </div>
                     </div>
@@ -390,11 +390,11 @@ export default function AdminPage() {
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
                       <div className="flex items-center justify-between sm:justify-start space-x-2">
                         <span className="text-sm text-muted-foreground sm:hidden">
-                          {window.isActive ? "Active" : "Inactive"}
+                          {wipWindow.isActive ? "Active" : "Inactive"}
                         </span>
                         <Switch
-                          checked={window.isActive}
-                          onCheckedChange={() => handleToggleActive(window)}
+                          checked={wipWindow.isActive}
+                          onCheckedChange={() => handleToggleActive(wipWindow)}
                         />
                       </div>
                       
@@ -402,7 +402,7 @@ export default function AdminPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleEdit(window)}
+                          onClick={() => handleEdit(wipWindow)}
                           className="flex-1 sm:flex-none"
                         >
                           <Edit className="h-4 w-4" />
@@ -415,7 +415,7 @@ export default function AdminPage() {
                               variant="outline" 
                               size="sm" 
                               className="flex-1 sm:flex-none text-destructive hover:text-destructive"
-                              disabled={window.isActive}
+                              disabled={wipWindow.isActive}
                             >
                               <Trash2 className="h-4 w-4" />
                               <span className="ml-2 sm:hidden">Delete</span>
@@ -425,10 +425,10 @@ export default function AdminPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete WIP Window</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete "{window.name}"? This action cannot be undone.
-                                {window.eventCount > 0 && (
+                                Are you sure you want to delete "{wipWindow.name}"? This action cannot be undone.
+                                {wipWindow.eventCount > 0 && (
                                   <span className="block mt-2 text-amber-600 font-medium">
-                                    Warning: This WIP window has {window.eventCount} event(s) and {window.participantCount} participant(s).
+                                    Warning: This WIP window has {wipWindow.eventCount} event(s) and {wipWindow.participantCount} participant(s).
                                   </span>
                                 )}
                               </AlertDialogDescription>
@@ -436,7 +436,7 @@ export default function AdminPage() {
                             <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                               <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
                               <AlertDialogAction 
-                                onClick={() => handleDeleteWipWindow(window)}
+                                onClick={() => handleDeleteWipWindow(wipWindow)}
                                 className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
                                 Delete WIP Window
