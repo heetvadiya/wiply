@@ -26,6 +26,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         attendances: {
           include: {
             user: true,
+            invitedBy: true,
           },
           orderBy: {
             user: {

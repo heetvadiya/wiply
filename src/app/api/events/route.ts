@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     // Add attendees if provided
     if (validatedData.attendeeEmails && validatedData.attendeeEmails.length > 0) {
       // Find existing users by email
-      const users = await prisma.user.findMany({
+      const existingUsers = await prisma.user.findMany({
         where: {
           email: {
             in: validatedData.attendeeEmails,
@@ -86,16 +86,35 @@ export async function POST(request: NextRequest) {
         },
       })
 
+      const existingEmails = existingUsers.map(user => user.email)
+      const nonExistingEmails = validatedData.attendeeEmails.filter(email => !existingEmails.includes(email))
+
       // Create attendance records for existing users
-      const attendanceData = users.map((user: { id: string }) => ({
-        eventId: event.id,
-        userId: user.id,
-        invitedById: session.user.id,
-        status: "PROPOSED" as const,
-      }))
+      const attendanceData = []
+      
+      // For existing users
+      for (const existingUser of existingUsers) {
+        attendanceData.push({
+          eventId: event.id,
+          userId: existingUser.id,
+          email: existingUser.email,
+          invitedById: user.id, // Use the event creator's database user ID
+          status: "PROPOSED" as const,
+        })
+      }
+
+      // For non-existing users (invite by email only)
+      for (const email of nonExistingEmails) {
+        attendanceData.push({
+          eventId: event.id,
+          email: email,
+          invitedById: user.id, // Use the event creator's database user ID
+          status: "PROPOSED" as const,
+        })
+      }
 
       await prisma.attendance.createMany({
-        data: attendanceData,
+        data: attendanceData as any,
       })
     }
 
@@ -137,13 +156,28 @@ export async function GET(request: NextRequest) {
 
     switch (filter) {
       case "my-events":
+        // Find events where user is invited by userId OR by email
+        const currentUser = await prisma.user.findUnique({
+          where: { id: session.user.id },
+        })
+        
         whereClause = {
           attendances: {
             some: {
-              userId: session.user.id,
-              status: {
-                in: ["PROPOSED", "CONFIRMED"],
-              },
+              OR: [
+                {
+                  userId: session.user.id,
+                  status: {
+                    in: ["PROPOSED", "CONFIRMED"],
+                  },
+                },
+                currentUser?.email ? {
+                  email: currentUser.email,
+                  status: {
+                    in: ["PROPOSED", "CONFIRMED"],
+                  },
+                } : undefined,
+              ].filter(Boolean),
             },
           },
         }

@@ -40,6 +40,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -95,11 +96,18 @@ interface Event {
   attendances: Array<{
     id: string
     status: "PROPOSED" | "CONFIRMED" | "DECLINED"
-    user: {
+    email: string
+    isPaid?: boolean
+    user?: {
       id: string
       name: string
       email: string
       image?: string
+    }
+    paidBy?: {
+      id: string
+      name: string
+      email: string
     }
   }>
   bills: Array<{
@@ -129,6 +137,10 @@ export default function EventDetailPage() {
   const [billLoading, setBillLoading] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<Array<{name: string, url: string, size: number}>>([])
   const [paidByLoading, setPaidByLoading] = useState(false)
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
+  const [attendeeInput, setAttendeeInput] = useState("")
+  const [newAttendeeEmails, setNewAttendeeEmails] = useState<string[]>([])
+  const [inviteLoading, setInviteLoading] = useState(false)
 
   const billForm = useForm<BillFormData>({
     resolver: zodResolver(billSchema),
@@ -441,6 +453,103 @@ export default function EventDetailPage() {
     }
   }
 
+  const addNewAttendee = () => {
+    const email = attendeeInput.trim()
+    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !newAttendeeEmails.includes(email)) {
+      // Check if email is already in existing attendances
+      const existingEmails = event?.attendances.map(a => a.email) || []
+      if (!existingEmails.includes(email)) {
+        setNewAttendeeEmails([...newAttendeeEmails, email])
+        setAttendeeInput("")
+      } else {
+        toast.error("This person is already invited to the event")
+      }
+    } else if (newAttendeeEmails.includes(email)) {
+      toast.error("This email is already in the invite list")
+    } else {
+      toast.error("Please enter a valid email address")
+    }
+  }
+
+  const removeNewAttendee = (email: string) => {
+    setNewAttendeeEmails(newAttendeeEmails.filter(e => e !== email))
+  }
+
+  const handleInviteAttendees = async () => {
+    if (!event || newAttendeeEmails.length === 0) return
+
+    setInviteLoading(true)
+
+    try {
+      const response = await fetch(`/api/events/${event.id}/attendees`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          attendeeEmails: newAttendeeEmails,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to invite attendees")
+      }
+
+      await response.json()
+      
+      // Refresh event data to show new attendees
+      const eventResponse = await fetch(`/api/events/${params.id}`)
+      if (eventResponse.ok) {
+        const eventData = await eventResponse.json()
+        setEvent(eventData)
+      }
+
+      toast.success(`Successfully invited ${newAttendeeEmails.length} people!`)
+      setNewAttendeeEmails([])
+      setAttendeeInput("")
+      setInviteDialogOpen(false)
+    } catch (error) {
+      console.error("Error inviting attendees:", error)
+      toast.error("Failed to invite attendees")
+    } finally {
+      setInviteLoading(false)
+    }
+  }
+
+  const handleUpdateAttendancePaidStatus = async (attendanceId: string, isPaid: boolean, paidById?: string) => {
+    if (!event) return
+
+    try {
+      const response = await fetch(`/api/events/${event.id}/attendees`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          attendanceId,
+          isPaid,
+          paidById,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to update payment status")
+      }
+
+      // Refresh event data
+      const eventResponse = await fetch(`/api/events/${params.id}`)
+      if (eventResponse.ok) {
+        const eventData = await eventResponse.json()
+        setEvent(eventData)
+      }
+
+      toast.success(`Payment status updated!`)
+    } catch (error) {
+      console.error("Error updating payment status:", error)
+      toast.error("Failed to update payment status")
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -472,11 +581,11 @@ export default function EventDetailPage() {
     )
   }
 
-  const confirmedAttendees = event.attendances.filter(a => a.status === "CONFIRMED")
+  const confirmedAttendees = event.attendances.filter(a => a.status === "CONFIRMED" && a.user)
   const totalBillAmount = event.bills.reduce((sum, bill) => sum + bill.totalCents, 0)
   const perPersonAmount = confirmedAttendees.length > 0 ? totalBillAmount / confirmedAttendees.length : 0
   const isCreator = event.creator.id === session.user.id
-  const myAttendance = event.attendances.find(a => a.user.id === session.user.id)
+  const myAttendance = event.attendances.find(a => a.user?.id === session.user.id)
 
   // Debug logging (remove after testing)
   // console.log("Event creator ID:", event.creator.id)
@@ -552,15 +661,15 @@ export default function EventDetailPage() {
                     <SelectContent>
                       <SelectItem value="none">No one selected</SelectItem>
                       {confirmedAttendees.map((attendance) => (
-                        <SelectItem key={attendance.user.id} value={attendance.user.id}>
+                        <SelectItem key={attendance.user!.id} value={attendance.user!.id}>
                           <div className="flex items-center space-x-2">
                             <Avatar className="h-4 w-4">
-                              <AvatarImage src={attendance.user.image} />
+                              <AvatarImage src={attendance.user!.image} />
                               <AvatarFallback className="text-xs">
-                                {attendance.user.name.charAt(0)}
+                                {attendance.user!.name?.charAt(0)}
                               </AvatarFallback>
                             </Avatar>
-                            <span>{attendance.user.name}</span>
+                            <span>{attendance.user!.name}</span>
                           </div>
                         </SelectItem>
                       ))}
@@ -888,13 +997,13 @@ export default function EventDetailPage() {
                           </div>
                           
                           {confirmedAttendees.map((attendance) => (
-                            <div key={attendance.user.id} className="grid grid-cols-3 gap-4 text-sm">
+                            <div key={attendance.user!.id} className="grid grid-cols-3 gap-4 text-sm">
                               <div className="flex items-center space-x-2">
                                 <Avatar className="h-6 w-6">
-                                  <AvatarImage src={attendance.user.image} />
-                                  <AvatarFallback>{attendance.user.name.charAt(0)}</AvatarFallback>
+                                  <AvatarImage src={attendance.user!.image} />
+                                  <AvatarFallback>{attendance.user!.name?.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <span>{attendance.user.name}</span>
+                                <span>{attendance.user!.name}</span>
                               </div>
                               <div className="text-center">
                                 {confirmedAttendees.length > 0 ? (100 / confirmedAttendees.length).toFixed(1) : 0}%
@@ -936,35 +1045,151 @@ export default function EventDetailPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {event.attendances.map((attendance) => (
-                  <div key={attendance.user.id} className="flex items-center justify-between">
+                  <div key={attendance.id} className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={attendance.user.image} />
-                        <AvatarFallback>{attendance.user.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={attendance.user?.image} />
+                        <AvatarFallback>
+                          {attendance.user?.name?.charAt(0) || attendance.email.charAt(0).toUpperCase()}
+                        </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">{attendance.user.name}</p>
-                        <p className="text-xs text-muted-foreground">{attendance.user.email}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {attendance.user?.name || attendance.email}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {attendance.email}
+                          {!attendance.user && " (not registered)"}
+                        </p>
+                        {attendance.isPaid && (
+                          <p className="text-xs text-green-600">
+                            ✓ Paid{attendance.paidBy ? ` by ${attendance.paidBy.name}` : ''}
+                          </p>
+                        )}
                       </div>
                     </div>
                     
-                    <Badge variant={
-                      attendance.status === "CONFIRMED" 
-                        ? "default" 
-                        : attendance.status === "DECLINED"
-                        ? "destructive"
-                        : "secondary"
-                    }>
-                      {attendance.status.toLowerCase()}
-                    </Badge>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant={
+                        attendance.status === "CONFIRMED" 
+                          ? "default" 
+                          : attendance.status === "DECLINED"
+                          ? "destructive"
+                          : "secondary"
+                      }>
+                        {attendance.status.toLowerCase()}
+                      </Badge>
+                      
+                      {isCreator && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => 
+                            handleUpdateAttendancePaidStatus(
+                              attendance.id, 
+                              !attendance.isPaid, 
+                              !attendance.isPaid ? session.user.id : undefined
+                            )
+                          }
+                          className="text-xs"
+                        >
+                          {attendance.isPaid ? "Mark Unpaid" : "Mark Paid"}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
                 
                 {isCreator && (
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Invite More People
-                  </Button>
+                  <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Invite More People
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Invite More People</DialogTitle>
+                        <DialogDescription>
+                          Add people you&apos;d like to invite to this event
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4">
+                        {/* Add Attendee Input */}
+                        <div className="flex space-x-2">
+                          <Input
+                            placeholder="colleague@company.com"
+                            value={attendeeInput}
+                            onChange={(e) => setAttendeeInput(e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault()
+                                addNewAttendee()
+                              }
+                            }}
+                          />
+                          <Button 
+                            type="button" 
+                            size="sm" 
+                            onClick={addNewAttendee}
+                            disabled={!attendeeInput.trim()}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        {/* Attendee List */}
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {newAttendeeEmails.map((email) => (
+                            <div
+                              key={email}
+                              className="flex items-center justify-between p-2 bg-muted rounded-md"
+                            >
+                              <span className="text-sm">{email}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeNewAttendee(email)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          
+                          {newAttendeeEmails.length === 0 && (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                              No attendees added yet
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              setInviteDialogOpen(false)
+                              setNewAttendeeEmails([])
+                              setAttendeeInput("")
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={handleInviteAttendees}
+                            disabled={newAttendeeEmails.length === 0 || inviteLoading}
+                          >
+                            {inviteLoading && (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                            )}
+                            Invite {newAttendeeEmails.length} People
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 )}
               </CardContent>
             </Card>

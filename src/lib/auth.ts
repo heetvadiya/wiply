@@ -36,6 +36,53 @@ export const authOptions: NextAuthOptions = {
         return false
       }
 
+      try {
+        // Check if user exists in database
+        let dbUser = await prisma.user.findUnique({
+          where: { email: user.email },
+        })
+
+        if (!dbUser) {
+          // Create new user
+          dbUser = await prisma.user.create({
+            data: {
+              id: user.id,
+              name: user.name || "Unknown User",
+              email: user.email,
+              image: user.image,
+            },
+          })
+
+          // Link any existing attendance records by email
+          await prisma.attendance.updateMany({
+            where: {
+              email: user.email,
+              userId: { equals: null },
+            },
+            data: {
+              userId: dbUser.id,
+            },
+          } as any)
+
+          console.log(`Linked attendance records for new user: ${user.email}`)
+        } else {
+          // Update existing user info
+          await prisma.user.update({
+            where: { email: user.email },
+            data: {
+              name: user.name || dbUser.name,
+              image: user.image || dbUser.image,
+            },
+          })
+
+          // Ensure user ID is consistent
+          user.id = dbUser.id
+        }
+      } catch (error) {
+        console.error("Error during signIn callback:", error)
+        // Don't block sign in due to database errors
+      }
+
       return true
     },
     async jwt({ token, user }) {
