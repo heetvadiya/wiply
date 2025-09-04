@@ -61,7 +61,7 @@ export default function SignInPage() {
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">Welcome to WIP Events</h1>
           <p className="text-sm text-muted-foreground">
-            Sign in to manage work-in-person events and reimbursements
+            Sign in to manage work-in-person events and shared expenses
           </p>
         </div>
 

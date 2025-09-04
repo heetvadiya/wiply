@@ -5,7 +5,7 @@ import GoogleProvider from "next-auth/providers/google"
 import { prisma } from "./prisma"
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // adapter: PrismaAdapter(prisma), // Temporarily disabled for debugging
   providers: [
     AzureADProvider({
       clientId: process.env.AZURE_AD_CLIENT_ID!,
@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
       : []),
   ],
   session: {
-    strategy: "jwt",
+    strategy: "jwt", // Changed back to JWT for now
   },
   callbacks: {
     async signIn({ user, account, profile }) {
@@ -38,7 +38,7 @@ export const authOptions: NextAuthOptions = {
 
       return true
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id
       }

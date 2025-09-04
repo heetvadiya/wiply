@@ -9,7 +9,7 @@ const createEventSchema = z.object({
   date: z.string().datetime(),
   location: z.string().optional(),
   notes: z.string().optional(),
-  vipWindowId: z.string(),
+  wipWindowId: z.string(),
   attendeeEmails: z.array(z.string().email()).optional(),
 })
 
@@ -20,8 +20,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    if (!session.user.email) {
+      return NextResponse.json({ error: "User email is required" }, { status: 400 })
+    }
+
+    console.log("Session user:", session.user) // Debug logging
+
     const body = await request.json()
     const validatedData = createEventSchema.parse(body)
+
+    console.log("Validated data:", validatedData) // Debug logging
+
+    // Ensure user exists in database, find by email first
+    let user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    })
+
+    if (!user) {
+      // User doesn't exist, create them
+      user = await prisma.user.create({
+        data: {
+          id: session.user.id,
+          name: session.user.name || "Unknown User",
+          email: session.user.email,
+          image: session.user.image,
+        },
+      })
+    } else {
+      // User exists, update their info and use their existing ID for the event
+      user = await prisma.user.update({
+        where: { email: session.user.email },
+        data: {
+          name: session.user.name || user.name,
+          image: session.user.image || user.image,
+        },
+      })
+    }
+
+    console.log("User upserted:", user) // Debug logging
 
     // Create event
     const event = await prisma.event.create({
@@ -30,12 +66,12 @@ export async function POST(request: NextRequest) {
         date: new Date(validatedData.date),
         location: validatedData.location,
         notes: validatedData.notes,
-        vipWindowId: validatedData.vipWindowId,
-        creatorId: session.user.id,
+        wipWindowId: validatedData.wipWindowId,
+        creatorId: user.id, // Use the actual user ID from database
       },
       include: {
         creator: true,
-        vipWindow: true,
+        wipWindow: true,
       },
     })
 
@@ -51,7 +87,7 @@ export async function POST(request: NextRequest) {
       })
 
       // Create attendance records for existing users
-      const attendanceData = users.map(user => ({
+      const attendanceData = users.map((user: { id: string }) => ({
         eventId: event.id,
         userId: user.id,
         invitedById: session.user.id,
@@ -69,13 +105,18 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid data", details: error.errors },
+        { error: "Invalid data", details: error.issues },
         { status: 400 }
       )
     }
 
+    // Return more detailed error information for debugging
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     )
   }
@@ -112,9 +153,9 @@ export async function GET(request: NextRequest) {
           creatorId: session.user.id,
         }
         break
-      case "current-vip":
+      case "current-wip":
         whereClause = {
-          vipWindow: {
+          wipWindow: {
             isActive: true,
           },
         }
@@ -136,7 +177,7 @@ export async function GET(request: NextRequest) {
       where: whereClause,
       include: {
         creator: true,
-        vipWindow: true,
+        wipWindow: true,
         attendances: {
           include: {
             user: true,
@@ -154,10 +195,10 @@ export async function GET(request: NextRequest) {
     })
 
     // Calculate totals and attendee counts
-    const eventsWithStats = events.map(event => ({
+    const eventsWithStats = events.map((event: any) => ({
       ...event,
-      attendeeCount: event.attendances.filter(a => a.status === "CONFIRMED").length,
-      totalAmount: event.bills.reduce((sum, bill) => sum + bill.totalCents, 0),
+      attendeeCount: event.attendances.filter((a: any) => a.status === "CONFIRMED").length,
+      totalAmount: event.bills.reduce((sum: number, bill: any) => sum + bill.totalCents, 0),
     }))
 
     return NextResponse.json({ events: eventsWithStats })

@@ -57,12 +57,6 @@ export function Navbar({ onSearchOpen }: NavbarProps) {
                 People
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/exports">
-                <Download className="mr-2 h-4 w-4" />
-                Exports
-              </Link>
-            </Button>
           </nav>
         </div>
 
@@ -119,9 +113,9 @@ export function Navbar({ onSearchOpen }: NavbarProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/settings">
+                  <Link href="/admin">
                     <Settings className="mr-2 h-4 w-4" />
-                    Settings
+                    WIP Management
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

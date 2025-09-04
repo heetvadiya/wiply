@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { redirect, useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
@@ -38,7 +38,7 @@ const eventSchema = z.object({
   time: z.string().min(1, "Time is required"), 
   location: z.string().optional(),
   notes: z.string().optional(),
-  vipWindowId: z.string().min(1, "VIP window is required"),
+  wipWindowId: z.string().min(1, "WIP window is required"),
   attendeeEmails: z.array(z.string().email()).optional(),
 })
 
@@ -50,6 +50,7 @@ export default function NewEventPage() {
   const [loading, setLoading] = useState(false)
   const [attendeeInput, setAttendeeInput] = useState("")
   const [attendeeEmails, setAttendeeEmails] = useState<string[]>([])
+  const [wipWindows, setWipWindows] = useState<any[]>([])
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
@@ -59,10 +60,26 @@ export default function NewEventPage() {
       time: "",
       location: "",
       notes: "",
-      vipWindowId: "",
+      wipWindowId: "",
       attendeeEmails: [],
     },
   })
+
+  useEffect(() => {
+    const fetchWipWindows = async () => {
+      try {
+        const response = await fetch('/api/wip-windows')
+        if (response.ok) {
+          const data = await response.json()
+          setWipWindows(data.wipWindows || [])
+        }
+      } catch (error) {
+        console.error("Error fetching WIP windows:", error)
+      }
+    }
+
+    fetchWipWindows()
+  }, [])
 
   if (status === "loading") {
     return (
@@ -100,6 +117,8 @@ export default function NewEventPage() {
         attendeeEmails,
       }
 
+      console.log("Sending event data:", eventData) // Debug log
+
       const response = await fetch("/api/events", {
         method: "POST",
         headers: {
@@ -109,7 +128,9 @@ export default function NewEventPage() {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to create event")
+        const errorData = await response.json()
+        console.error("Server error response:", errorData)
+        throw new Error(errorData.details || errorData.error || "Failed to create event")
       }
 
       const event = await response.json()
@@ -117,7 +138,7 @@ export default function NewEventPage() {
       router.push(`/events/${event.id}`)
     } catch (error) {
       console.error("Error creating event:", error)
-      toast.error("Failed to create event. Please try again.")
+      toast.error(error instanceof Error ? error.message : "Failed to create event. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -139,7 +160,7 @@ export default function NewEventPage() {
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Create New Event</h1>
             <p className="text-muted-foreground">
-              Organize a group outing during your VIP window
+              Organize a group outing during your WIP window
             </p>
           </div>
         </div>
@@ -206,26 +227,34 @@ export default function NewEventPage() {
                       />
                     </div>
 
-                    {/* VIP Window */}
+                    {/* WIP Window */}
                     <FormField
                       control={form.control}
-                      name="vipWindowId"
+                      name="wipWindowId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>VIP Window</FormLabel>
+                          <FormLabel>WIP Window</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select VIP window" />
+                                <SelectValue placeholder="Select WIP window" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="current">Current VIP (Jan 15-30, 2024)</SelectItem>
-                              <SelectItem value="next">Next VIP (Jun 15-30, 2024)</SelectItem>
+                              {wipWindows.length === 0 ? (
+                                <SelectItem value="no-windows" disabled>No WIP windows available</SelectItem>
+                              ) : (
+                                wipWindows.map((window) => (
+                                  <SelectItem key={window.id} value={window.id}>
+                                    {window.name} ({new Date(window.startDate).toLocaleDateString()} - {new Date(window.endDate).toLocaleDateString()})
+                                    {window.isActive && " (Active)"}
+                                  </SelectItem>
+                                ))
+                              )}
                             </SelectContent>
                           </Select>
                           <FormDescription>
-                            Choose the VIP window this event belongs to
+                            Choose the WIP window this event belongs to
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

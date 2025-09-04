@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WIP Events & Reimbursements",
-  description: "Manage work-in-person events, attendance, and reimbursements with ease.",
+  title: "WIP Events",
+  description: "Manage work-in-person events, attendance, and shared expenses with ease.",
 };
 
 export default function RootLayout({
