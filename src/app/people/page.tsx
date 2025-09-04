@@ -47,7 +47,7 @@ export default function PeoplePage() {
     fetchPeople()
   }, [])
 
-  const filteredPeople = people.filter(person =>
+  const filteredPeople = people.filter((person: any) =>
     person.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     person.email.toLowerCase().includes(searchQuery.toLowerCase())
   )

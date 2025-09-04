@@ -57,8 +57,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
     })
 
-    const existingEmails = existingUsers.map(user => user.email)
-    const nonExistingEmails = validatedData.attendeeEmails.filter(email => !existingEmails.includes(email))
+    const existingEmails = existingUsers.map((user: any) => user.email)
+    const nonExistingEmails = validatedData.attendeeEmails.filter((email: string) => !existingEmails.includes(email))
 
     // Check for existing attendances to avoid duplicates
     const existingAttendances = await prisma.attendance.findMany({
@@ -83,8 +83,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const existingAttendanceEmails = existingAttendances.map((a: any) => a.email).filter(Boolean)
 
     // Filter out users/emails that are already attendees
-    const newExistingUsers = existingUsers.filter(u => !existingAttendanceUserIds.includes(u.id))
-    const newNonExistingEmails = nonExistingEmails.filter(email => !existingAttendanceEmails.includes(email))
+    const newExistingUsers = existingUsers.filter((u: any) => !existingAttendanceUserIds.includes(u.id))
+    const newNonExistingEmails = nonExistingEmails.filter((email: string) => !existingAttendanceEmails.includes(email))
 
     // Create attendance records
     const attendanceData = []

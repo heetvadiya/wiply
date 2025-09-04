@@ -205,7 +205,7 @@ export default function EventDetailPage() {
         if (!prev) return prev
         return {
           ...prev,
-          attendances: prev.attendances.map(attendance =>
+          attendances: prev.attendances.map((attendance: any) =>
             attendance.id === attendanceId
               ? { ...attendance, status }
               : attendance
@@ -336,7 +336,7 @@ export default function EventDetailPage() {
     const fileArray = Array.from(files)
     const maxSize = 10 * 1024 * 1024 // 10MB
     
-    const validFiles = fileArray.filter(file => {
+    const validFiles = fileArray.filter((file: File) => {
       if (file.size > maxSize) {
         toast.error(`File ${file.name} is too large. Max size is 10MB.`)
         return false
@@ -413,7 +413,7 @@ export default function EventDetailPage() {
         if (!prev) return prev
         return {
           ...prev,
-          bills: prev.bills.filter(bill => bill.id !== billId)
+          bills: prev.bills.filter((bill: any) => bill.id !== billId)
         }
       })
 
@@ -457,7 +457,7 @@ export default function EventDetailPage() {
     const email = attendeeInput.trim()
     if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !newAttendeeEmails.includes(email)) {
       // Check if email is already in existing attendances
-      const existingEmails = event?.attendances.map(a => a.email) || []
+      const existingEmails = event?.attendances.map((a: any) => a.email) || []
       if (!existingEmails.includes(email)) {
         setNewAttendeeEmails([...newAttendeeEmails, email])
         setAttendeeInput("")
@@ -472,7 +472,7 @@ export default function EventDetailPage() {
   }
 
   const removeNewAttendee = (email: string) => {
-    setNewAttendeeEmails(newAttendeeEmails.filter(e => e !== email))
+    setNewAttendeeEmails(newAttendeeEmails.filter((e: string) => e !== email))
   }
 
   const handleInviteAttendees = async () => {
@@ -581,7 +581,7 @@ export default function EventDetailPage() {
     )
   }
 
-  const confirmedAttendees = event.attendances.filter(a => a.status === "CONFIRMED" && a.user)
+  const confirmedAttendees = event.attendances.filter((a: any) => a.status === "CONFIRMED" && a.user)
   const totalBillAmount = event.bills.reduce((sum, bill) => sum + bill.totalCents, 0)
   const perPersonAmount = confirmedAttendees.length > 0 ? totalBillAmount / confirmedAttendees.length : 0
   const isCreator = event.creator.id === session.user.id

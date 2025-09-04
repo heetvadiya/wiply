@@ -102,7 +102,7 @@ export default function NewEventPage() {
   }
 
   const removeAttendee = (email: string) => {
-    setAttendeeEmails(attendeeEmails.filter(e => e !== email))
+    setAttendeeEmails(attendeeEmails.filter((e: string) => e !== email))
   }
 
   const onSubmit = async (data: EventFormData) => {
