@@ -1,0 +1,212 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+// Core application models
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts     Account[]
+  sessions     Session[]
+  createdEvents Event[]  @relation("EventCreator")
+  attendances  Attendance[]
+  paidBills    Bill[]    @relation("BillPayer")
+  uploads      Attachment[] @relation("AttachmentUploader")
+  invitedBy    Attendance[] @relation("AttendanceInviter")
+  preferences  UserPreference?
+
+  @@map("users")
+}
+
+model VipWindow {
+  id        String   @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events Event[]
+  orgSettings OrgSetting[]
+
+  @@map("vip_windows")
+}
+
+model Event {
+  id           String   @id @default(cuid())
+  title        String
+  date         DateTime
+  location     String?
+  notes        String?  @db.Text
+  vipWindowId  String
+  creatorId    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  vipWindow   VipWindow    @relation(fields: [vipWindowId], references: [id])
+  creator     User         @relation("EventCreator", fields: [creatorId], references: [id])
+  attendances Attendance[]
+  bills       Bill[]
+
+  @@map("events")
+}
+
+enum AttendanceStatus {
+  PROPOSED
+  CONFIRMED
+  DECLINED
+}
+
+model Attendance {
+  id          String           @id @default(cuid())
+  eventId     String
+  userId      String
+  status      AttendanceStatus @default(PROPOSED)
+  invitedById String
+  updatedAt   DateTime         @updatedAt
+
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy User  @relation("AttendanceInviter", fields: [invitedById], references: [id])
+
+  @@unique([eventId, userId])
+  @@map("attendances")
+}
+
+model Bill {
+  id            String   @id @default(cuid())
+  eventId       String
+  payerId       String
+  subtotalCents Int
+  taxCents      Int      @default(0)
+  tipCents      Int      @default(0)
+  totalCents    Int
+  currency      String   @default("USD")
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  event       Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  payer       User         @relation("BillPayer", fields: [payerId], references: [id])
+  items       BillItem[]
+  attachments Attachment[]
+
+  @@map("bills")
+}
+
+enum BillItemCategory {
+  FOOD
+  TRANSPORT
+  ACTIVITY
+  OTHER
+}
+
+model BillItem {
+  id          String           @id @default(cuid())
+  billId      String
+  label       String
+  amountCents Int
+  quantity    Int              @default(1)
+  category    BillItemCategory @default(OTHER)
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@map("bill_items")
+}
+
+model Attachment {
+  id           String   @id @default(cuid())
+  billId       String
+  url          String
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  bill       Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+  uploadedBy User @relation("AttachmentUploader", fields: [uploadedById], references: [id])
+
+  @@map("attachments")
+}
+
+model UserPreference {
+  id                   String  @id @default(cuid())
+  userId               String  @unique
+  defaultCurrency      String  @default("USD")
+  emailDomain          String?
+  notificationsOptIn   Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model OrgSetting {
+  id                        String   @id @default(cuid())
+  allowedDomains            String[]
+  maxAttachmentMB           Int      @default(10)
+  currentVipWindowId        String?
+  reimbursementExportFooter String?  @db.Text
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  currentVipWindow VipWindow? @relation(fields: [currentVipWindowId], references: [id])
+
+  @@map("org_settings")
+}
