@@ -50,7 +50,7 @@ export default function NewEventPage() {
   const [loading, setLoading] = useState(false)
   const [attendeeInput, setAttendeeInput] = useState("")
   const [attendeeEmails, setAttendeeEmails] = useState<string[]>([])
-  const [wipWindows, setWipWindows] = useState<any[]>([])
+  const [wipWindows, setWipWindows] = useState<Array<{ id: string; name: string; isActive: boolean; startDate: string; endDate: string }>>([])
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
@@ -330,7 +330,7 @@ export default function NewEventPage() {
                   <span>Invite Attendees</span>
                 </CardTitle>
                 <CardDescription>
-                  Add people you'd like to invite to this event
+                  Add people you&apos;d like to invite to this event
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

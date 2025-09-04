@@ -4,9 +4,9 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -16,8 +16,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
     const event = await prisma.event.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         creator: true,
         wipWindow: true,
@@ -65,8 +66,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
     const event = await prisma.event.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         attendances: {
           where: { userId: session.user.id },
@@ -90,7 +92,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
     
     const updatedEvent = await prisma.event.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(body.title && { title: body.title }),
         ...(body.date && { date: new Date(body.date) }),
@@ -136,8 +138,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const { searchParams } = new URL(request.url)
     const force = searchParams.get('force') === 'true'
 
+    const { id } = await params
     const event = await prisma.event.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         bills: true,
       },
@@ -166,7 +169,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     // Delete the event (cascading deletes will handle related records)
     await prisma.event.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })

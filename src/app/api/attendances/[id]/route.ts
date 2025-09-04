@@ -9,12 +9,13 @@ const updateAttendanceSchema = z.object({
 })
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const { id } = await params
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
@@ -25,7 +26,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const validatedData = updateAttendanceSchema.parse(body)
 
     const attendance = await prisma.attendance.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         event: true,
         user: true,
@@ -42,7 +43,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const updatedAttendance = await prisma.attendance.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: validatedData.status,
       },
@@ -58,7 +59,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid data", details: error.errors },
+        { error: "Invalid data", details: error.issues },
         { status: 400 }
       )
     }

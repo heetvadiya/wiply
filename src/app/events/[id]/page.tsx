@@ -39,7 +39,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
@@ -55,12 +54,10 @@ import {
   Users, 
   Plus, 
   Edit,
-  DollarSign,
   Receipt,
   Download,
   Check,
   X,
-  Clock,
   Trash2
 } from "lucide-react"
 import Link from "next/link"
@@ -367,9 +364,9 @@ export default function EventDetailPage() {
     })
   }
 
-  const handleDownloadReceipt = (bill: any) => {
+  const handleDownloadReceipt = (bill: { attachments?: Array<{ url: string; fileName: string }> }) => {
     if (bill.attachments && bill.attachments.length > 0) {
-      bill.attachments.forEach((attachment: any) => {
+      bill.attachments.forEach((attachment) => {
         // For base64 files, create a download link
         const link = document.createElement('a')
         link.href = attachment.url
@@ -603,7 +600,7 @@ export default function EventDetailPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete Event</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete "{event.title}"? This action cannot be undone.
+                          Are you sure you want to delete &quot;{event.title}&quot;? This action cannot be undone.
                           {event.bills && event.bills.length > 0 && (
                             <span className="block mt-2 text-amber-600 font-medium">
                               Warning: This event has {event.bills.length} bill(s) attached.
@@ -637,7 +634,7 @@ export default function EventDetailPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium">You're invited to this event</h3>
+                      <h3 className="font-medium">You&apos;re invited to this event</h3>
                       <p className="text-sm text-muted-foreground">
                         Please confirm your attendance
                       </p>

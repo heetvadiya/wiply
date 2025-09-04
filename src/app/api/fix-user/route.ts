@@ -10,9 +10,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const userEmail = session.user.email
+    
     // Find the existing user with the same email
     const existingUser = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { email: userEmail },
     })
 
     if (!existingUser) {
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
       // Step 6: Update new user with correct email
       await tx.user.update({
         where: { id: session.user.id },
-        data: { email: session.user.email },
+        data: { email: userEmail },
       })
     })
 

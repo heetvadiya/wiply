@@ -12,9 +12,9 @@ const updateWipWindowSchema = z.object({
 })
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
@@ -24,11 +24,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const validatedData = updateWipWindowSchema.parse(body)
 
     const existingWindow = await prisma.wipWindow.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     if (!existingWindow) {
@@ -40,14 +41,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       await prisma.wipWindow.updateMany({
         where: { 
           isActive: true,
-          id: { not: params.id }
+          id: { not: id }
         },
         data: { isActive: false },
       })
     }
 
     const updatedWindow = await prisma.wipWindow.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         ...(validatedData.name && { name: validatedData.name }),
         ...(validatedData.startDate && { startDate: new Date(validatedData.startDate) }),
@@ -92,9 +93,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const { searchParams } = new URL(request.url)
     const force = searchParams.get('force') === 'true'
+    const { id } = await params
 
     const wipWindow = await prisma.wipWindow.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         events: true,
       },
@@ -126,7 +128,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     // Delete the WIP window (cascading deletes will handle events if forced)
     await prisma.wipWindow.delete({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     return NextResponse.json({ success: true })

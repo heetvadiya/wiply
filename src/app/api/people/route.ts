@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Calculate stats for each person
-    const peopleWithStats = people.map((person: any) => {
+    const peopleWithStats = people.map((person) => {
       const confirmedEvents = person.attendances || []
       const eventCount = confirmedEvents.length
       
@@ -49,16 +49,16 @@ export async function GET(request: NextRequest) {
       let totalSpent = 0
       let totalOwed = 0
       
-      confirmedEvents.forEach((attendance: any) => {
+      confirmedEvents.forEach((attendance) => {
         const event = attendance.event
         if (event.bills && event.bills.length > 0) {
-          const eventTotal = event.bills.reduce((sum: number, bill: any) => sum + bill.totalCents, 0)
+          const eventTotal = event.bills.reduce((sum: number, bill) => sum + bill.totalCents, 0)
           const attendeeCount = confirmedEvents.length || 1
           totalOwed += eventTotal / attendeeCount
           
           // If this person paid any bills for this event
-          const userBills = event.bills.filter((bill: any) => bill.payerId === person.id)
-          totalSpent += userBills.reduce((sum: number, bill: any) => sum + bill.totalCents, 0)
+          const userBills = event.bills.filter((bill) => bill.payerId === person.id)
+          totalSpent += userBills.reduce((sum: number, bill) => sum + bill.totalCents, 0)
         }
       })
 

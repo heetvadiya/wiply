@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Navbar } from "@/components/layout/navbar"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -42,8 +42,7 @@ import { Switch } from "@/components/ui/switch"
 import { 
   Plus, 
   Calendar, 
-  Users, 
-  Settings,
+  Users,
   Edit,
   Trash2
 } from "lucide-react"
@@ -84,18 +83,6 @@ export default function AdminPage() {
       isActive: false,
     },
   })
-
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    )
-  }
-
-  if (!session) {
-    redirect("/signin")
-  }
 
   useEffect(() => {
     fetchWipWindows()
@@ -211,6 +198,18 @@ export default function AdminPage() {
       console.error("Error deleting WIP window:", error)
       toast.error(error instanceof Error ? error.message : "Failed to delete WIP window")
     }
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    )
+  }
+
+  if (!session) {
+    redirect("/signin")
   }
 
   return (
@@ -425,7 +424,7 @@ export default function AdminPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete WIP Window</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete "{wipWindow.name}"? This action cannot be undone.
+                                Are you sure you want to delete &quot;{wipWindow.name}&quot;? This action cannot be undone.
                                 {wipWindow.eventCount > 0 && (
                                   <span className="block mt-2 text-amber-600 font-medium">
                                     Warning: This WIP window has {wipWindow.eventCount} event(s) and {wipWindow.participantCount} participant(s).

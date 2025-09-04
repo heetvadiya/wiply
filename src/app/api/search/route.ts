@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       },
       include: {
         creator: true,
-        vipWindow: true,
+        wipWindow: true,
       },
       take: 10,
       orderBy: {

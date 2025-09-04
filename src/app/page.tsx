@@ -41,6 +41,19 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
+interface Event {
+  id: string
+  title: string
+  date: string
+  location?: string
+  creatorId: string
+  attendeeCount: number
+  totalAmount: number
+  creator?: {
+    name: string
+  }
+}
+
 export default function HomePage() {
   const { data: session, status } = useSession()
   const [searchOpen, setSearchOpen] = useState(false)
@@ -89,7 +102,7 @@ export default function HomePage() {
             <CardContent>
               <div className="text-2xl font-bold">-</div>
               <p className="text-xs text-muted-foreground">
-                Events you've attended
+                Events you&apos;ve attended
               </p>
             </CardContent>
           </Card>
@@ -102,7 +115,7 @@ export default function HomePage() {
             <CardContent>
               <div className="text-2xl font-bold">-</div>
               <p className="text-xs text-muted-foreground">
-                People you've shared events with
+                People you&apos;ve shared events with
               </p>
             </CardContent>
           </Card>
@@ -154,7 +167,7 @@ export default function HomePage() {
 // Events List Component
 function EventsList({ type }: { type: string }) {
   const { data: session } = useSession()
-  const [events, setEvents] = useState([])
+  const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -175,7 +188,7 @@ function EventsList({ type }: { type: string }) {
     fetchEvents()
   }, [type])
 
-  const handleDeleteEvent = async (eventId: string, eventTitle: string) => {
+  const handleDeleteEvent = async (eventId: string) => {
     try {
       const response = await fetch(`/api/events/${eventId}`, {
         method: 'DELETE',
@@ -203,7 +216,7 @@ function EventsList({ type }: { type: string }) {
       }
 
       // Remove from local state
-      setEvents(prev => prev.filter((event: any) => event.id !== eventId))
+      setEvents(prev => prev.filter((event) => event.id !== eventId))
       toast.success("Event deleted successfully!")
     } catch (error) {
       console.error("Error deleting event:", error)
@@ -234,7 +247,7 @@ function EventsList({ type }: { type: string }) {
 
   return (
     <div className="space-y-4">
-      {events.map((event: any) => (
+      {events.map((event) => (
         <Card key={event.id} className="hover:shadow-md transition-shadow group">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -268,13 +281,13 @@ function EventsList({ type }: { type: string }) {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Event</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete "{event.title}"? This action cannot be undone.
+                                  Are you sure you want to delete &quot;{event.title}&quot;? This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                                 <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
                                 <AlertDialogAction 
-                                  onClick={() => handleDeleteEvent(event.id, event.title)}
+                                  onClick={() => handleDeleteEvent(event.id)}
                                   className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
                                   Delete Event

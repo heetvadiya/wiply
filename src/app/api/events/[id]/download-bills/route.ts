@@ -5,9 +5,9 @@ import { prisma } from "@/lib/prisma"
 import JSZip from "jszip"
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -17,9 +17,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
     // Get event with bills and attachments
     const event = await prisma.event.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         bills: {
           include: {
@@ -118,7 +119,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Generate the ZIP
-    const zipBuffer = await zip.generateAsync({ type: "nodebuffer" })
+    const zipBuffer = await zip.generateAsync({ type: "arraybuffer" })
 
     // Return the ZIP file
     const fileName = `${event.title.replace(/[^a-zA-Z0-9]/g, '_')}_Bills.zip`
@@ -128,7 +129,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       headers: {
         'Content-Type': 'application/zip',
         'Content-Disposition': `attachment; filename="${fileName}"`,
-        'Content-Length': zipBuffer.length.toString(),
+        'Content-Length': zipBuffer.byteLength.toString(),
       },
     })
 

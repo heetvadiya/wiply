@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
     const filter = searchParams.get("filter") // my-events, created, current-vip, all
     const search = searchParams.get("search")
 
-    let whereClause: any = {}
+    let whereClause: Record<string, unknown> = {}
 
     switch (filter) {
       case "my-events":
@@ -195,10 +195,10 @@ export async function GET(request: NextRequest) {
     })
 
     // Calculate totals and attendee counts
-    const eventsWithStats = events.map((event: any) => ({
+    const eventsWithStats = events.map((event) => ({
       ...event,
-      attendeeCount: event.attendances.filter((a: any) => a.status === "CONFIRMED").length,
-      totalAmount: event.bills.reduce((sum: number, bill: any) => sum + bill.totalCents, 0),
+      attendeeCount: event.attendances.filter((a) => a.status === "CONFIRMED").length,
+      totalAmount: event.bills.reduce((sum: number, bill) => sum + bill.totalCents, 0),
     }))
 
     return NextResponse.json({ events: eventsWithStats })

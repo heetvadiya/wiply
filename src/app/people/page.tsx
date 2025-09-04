@@ -29,18 +29,6 @@ export default function PeoplePage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
 
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    )
-  }
-
-  if (!session) {
-    redirect("/signin")
-  }
-
   useEffect(() => {
     const fetchPeople = async () => {
       try {
@@ -64,6 +52,18 @@ export default function PeoplePage() {
     person.email.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    )
+  }
+
+  if (!session) {
+    redirect("/signin")
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar onSearchOpen={() => setSearchOpen(true)} />
@@ -75,7 +75,7 @@ export default function PeoplePage() {
           <div className="space-y-1">
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight">People Directory</h1>
             <p className="text-sm md:text-base text-muted-foreground">
-              See who's participating in WIP events and their activity
+              See who&apos;s participating in WIP events and their activity
             </p>
           </div>
         </div>

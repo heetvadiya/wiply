@@ -14,9 +14,9 @@ const createBillSchema = z.object({
 })
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const eventId = params.id
+    const { id: eventId } = await params
     
     // Check if event exists and user has access
     const event = await prisma.event.findUnique({

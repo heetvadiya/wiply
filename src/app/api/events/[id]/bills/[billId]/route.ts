@@ -4,10 +4,10 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
     billId: string
-  }
+  }>
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
@@ -17,7 +17,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { id: eventId, billId } = params
+    const { id: eventId, billId } = await params
 
     // Check if bill exists and user has permission
     const bill = await prisma.bill.findUnique({
